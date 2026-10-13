@@ -64,7 +64,6 @@ if uploaded_file is not None:
         default_text = "السلام عليكم ولي أمر الطالبة [اسم الطالبة]، نفيدكم علماً بأنه في هذا اليوم [اليوم] الموافق [التاريخ الهجري] قد تم..."
         message_text = st.text_area("تعديل نص الرسالة:", value=default_text, height=100)
 
-    # إضافة عمود الاختيار التفاعلي (✓) للجدول المفلتر سحابياً
     if "Select" not in filtered_df.columns:
         filtered_df.insert(0, "Select", False)
 
@@ -72,17 +71,15 @@ if uploaded_file is not None:
     st.markdown("### 👥 حدد الطالبات المُراد مراسلتهن:")
     st.write(f"📊 عدد الطالبات المتاحات في هذا العرض: **{len(filtered_df)} طالبة**")
 
-    # عرض الجدول الاحترافي التفاعلي للسماح بالاختيار (✓)
     edited_df = st.data_editor(
         filtered_df,
         column_config={"Select": st.column_config.CheckboxColumn("اختيار (✓)", default=False)},
         disabled=[c for c in filtered_df.columns if c != "Select"],
         hide_index=True,
         use_container_width=True,
-        key="cloud_perfect_selection_grid"
+        key="cloud_perfect_selection_grid_fixed"
     )
     
-    # حصر وحفظ أسطر الطالبات اللواتي قمتِ بوضع علامة صح أمامهن فقط
     selected_students = edited_df[edited_df["Select"] == True]
     
     st.markdown("---")
@@ -91,7 +88,6 @@ if uploaded_file is not None:
     if len(selected_students) == 0:
         st.info("💡 الرجاء وضع علامة صح (✓) أمام أسماء الطالبات في الجدول بالأعلى ليتم إنشاء أزرار إرسال مخصصة لهن هنا فوراً.")
     else:
-        # عرض الأزرار فقط للطالبات المحدّدات لتوفير الجمالية وسهولة الضغط
         for index, row in selected_students.iterrows():
             name = str(row[name_col])
             phone = str(row[phone_col]).strip()
@@ -105,16 +101,14 @@ if uploaded_file is not None:
             custom_message = custom_message.replace("[التاريخ الهجري]", hijri_date_str)
             
             encoded_message = urllib.parse.quote(custom_message)
-           whatsapp_url = f"https://wa.me{phone}?text={encoded_message}"
-
+            whatsapp_url = f"https://wa.me{phone}?text={encoded_message}"
             
-            # تصميم زر أنيق وجذاب لكل طالبة مختارة
             st.link_button(f"💬 اضغط لإرسال رسالة الطالبة: {name}", whatsapp_url, use_container_width=True)
 
 st.markdown("""
     <hr style='border-top: 1px solid #bbb;'>
     <div style='display: flex; justify-content: space-between; color: #888; font-size: 14px; direction: rtl;'>
         <div style='font-weight: bold; color: #1E3A8A;'>✨ تصميم واعداد : غادة المجيبل</div>
-        <div>لوحة تحكم سحابية v5.0</div>
+        <div>لوحة تحكم سحابية v5.1</div>
     </div>
 """, unsafe_allow_html=True)
