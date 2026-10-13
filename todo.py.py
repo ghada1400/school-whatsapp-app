@@ -101,7 +101,8 @@ if uploaded_file is not None:
             custom_message = custom_message.replace("[التاريخ الهجري]", hijri_date_str)
             
             encoded_message = urllib.parse.quote(custom_message)
-            whatsapp_url = f"https://wa.me{phone}?text={encoded_message}"
+          whatsapp_url = f"https://wa.me{phone}?text={encoded_message}"
+
             
             st.link_button(f"💬 اضغط لإرسال رسالة الطالبة: {name}", whatsapp_url, use_container_width=True)
 
