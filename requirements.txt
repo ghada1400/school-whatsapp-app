@@ -1,0 +1,3 @@
+pandas
+hijri-converter
+pywhatkit
