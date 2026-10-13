@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import pywhatkit as kit
 import time
 import re
 from datetime import datetime
