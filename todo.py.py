@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-import urllib.parse
+import pywhatkit as kit
+import time
 from datetime import datetime
 from hijri_converter import Gregorian
 
@@ -16,14 +17,14 @@ HIJRI_MONTHS = {
     9: "رمضان", 10: "شوال", 11: "ذو القعدة", 12: "ذو الحجة"
 }
 
-# إعدادات الصفحة وجعلها عريضة واحترافية
+# إعدادات الشاشة وجعلها عريضة واحترافية
 st.set_page_config(page_title="نظام مراسلة المدارس - أ. غادة المجيبل", layout="wide")
 
-# تصميم الهيدر العلوي بشكل منسق
+# تصميم الهيدر العلوي الأنيق
 st.markdown("""
-    <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 25px; border-right: 5px solid #4CAF50;'>
-        <h2 style='margin: 0; color: #1E3A8A;'>🏫 نظام إدارة ومراسلة الطالبات الإلكتروني</h2>
-        <p style='margin: 5px 0 0 0; color: #555;'>نظام ذكي لفلترة الصفوف المدرسية والمراسلة الفورية المخصصة عبر الواتساب</p>
+    <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 25px; border-right: 5px solid #1E3A8A; text-align: right;'>
+        <h2 style='margin: 0; color: #1E3A8A;'>🏫 نظام إدارة ومراسلة الطالبات الإلكتروني التلقائي</h2>
+        <p style='margin: 5px 0 0 0; color: #555;'>نظام ذكي لفلترة الصفوف المدرسية والمراسلة الجماعية التلقائية عبر الواتساب</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -32,7 +33,7 @@ uploaded_file = st.file_uploader("📂 اختر ملف إكسل الطالبات
 
 if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
-    df.columns = df.columns.str.strip() # تنظيف الأعمدة من المسافات
+    df.columns = df.columns.str.strip() # تنظيف الأعمدة
     
     # ⚙️ محاولة التعرف التلقائي الذكي على الأعمدة
     name_col, phone_col, class_col = None, None, None
@@ -51,75 +52,86 @@ if uploaded_file is not None:
     hijri_date = Gregorian(now.year, now.month, now.day).to_hijri()
     hijri_date_str = f"{hijri_date.day} {HIJRI_MONTHS.get(hijri_date.month, '')} {hijri_date.year} هـ"
 
-    # تقسيم الشاشة العلوية إلى قسمين متناسقين (الفلتر + نص الرسالة)
-    col_left, col_right = st.columns([1, 2], gap="large")
+    # تقسيم الشاشة العلوية هندسياً (الفلتر + نص الرسالة)
+    col_left, col_right = st.columns(2, gap="large")
     
     with col_left:
-        st.markdown("### 📌 خيارات التصفية")
+        st.markdown("### 📌 تصفية الفصول الدراسيّة")
         filtered_df = df.copy()
         if class_col:
             df[class_col] = df[class_col].astype(str).str.strip()
             unique_classes = df[class_col].dropna().unique()
-            selected_class = st.selectbox("اختر الصف الدراسي:", ["عرض جميع الصفوف"] + list(unique_classes))
-            if selected_class != "عرض government الصفوف" and selected_class != "عرض جميع الصفوف":
+            selected_class = st.selectbox("اختر الصف لعرض طالباته فقط:", ["عرض جميع الصفوف"] + list(unique_classes))
+            if selected_class != "عرض جميع الصفوف":
                 filtered_df = df[df[class_col] == selected_class].copy()
-        else:
-            st.info("لم يتم العثور على عمود خاص بالصفوف في الملف.")
 
     with col_right:
         st.markdown("### 📝 نص الرسالة الموحدة")
-        st.caption(f"💡 الاختصارات النشطة: [اسم الطالبة] | [اليوم] ({current_day_ar}) | [التاريخ الهجري] ({hijri_date_str})")
-        default_text = "السلام عليكم ولي أمر الطالبة [اسم الطالبة]، نفيدكم علماً بأنه في هذا اليوم [اليوم] الموافق [التاريخ الهجري] قد تم..."
+        st.caption(f"💡 الاختصارات: [اسم الطالبة] | [اليوم] ({current_day_ar}) | [التاريخ الهجري] ({hijri_date_str})")
+        default_text = "السلام عليكم ولي أمر الطالبة [اسم الطالبة]، نفيدكم علماً بأنها تغيبت اليوم [اليوم] الموافق [التاريخ الهجري] فهل هناك عذر رسمي للغياب..."
         message_text = st.text_area("تعديل نص الرسالة:", value=default_text, height=100)
 
+    # إضافة عمود الاختيار (✓) للجدول المفلتر بصرياً
+    if "Select" not in filtered_df.columns:
+        filtered_df.insert(0, "Select", False)
+
     st.markdown("---")
-    st.markdown("### 👥 جدول الطالبات التنفيذي المطور")
-    st.write(f"📊 عدد الطالبات في العرض الحالي: **{len(filtered_df)} طالبة**")
+    st.markdown("### 👥 حدد الطالبات المُراد مراسلتهن تلقائياً:")
+    st.write(f"📊 عدد الطالبات المتاحات في العرض: **{len(filtered_df)} طالبة**")
 
-    # 🔄 تجهيز الروابط وتضمينها كعمود تفاعلي احترافي داخل الجدول
-    links = []
-    for index, row in filtered_df.iterrows():
-        name = str(row[name_col])
-        phone = str(row[phone_col]).strip()
-        
-        # معالجة أرقام الهواتف دولياً
-        phone = "".join(filter(str.isdigit, phone))
-        if phone.startswith("05") and len(phone) == 10: phone = "966" + phone[1:]
-        elif phone.startswith("5") and len(phone) == 9: phone = "966" + phone
-            
-        custom_message = message_text.replace("[اسم الطالبة]", name)
-        custom_message = custom_message.replace("[اليوم]", current_day_ar)
-        custom_message = custom_message.replace("[التاريخ الهجري]", hijri_date_str)
-        
-        encoded_message = urllib.parse.quote(custom_message)
-        whatsapp_url = f"https://whatsapp.com{phone}&text={encoded_message}"
-        links.append(whatsapp_url)
-    
-    # إضافة عمود الرابط للجدول المعروض
-    display_df = filtered_df.copy()
-    display_df["رابط المراسلة"] = links
-
-    # عرض الجدول الاحترافي النهائي مع تحويل عمود الروابط إلى أزرار ضغط ذكية وجذابة داخل السطر
-    st.data_editor(
-        display_df,
-        column_config={
-            "رابط المراسلة": st.column_config.LinkColumn(
-                "💬 إرسال الواتساب",
-                help="اضغط لفتح محادثة الطالبة فوراً بالرسالة المجهزة",
-                display_text="💬 إرسال الآن"
-            )
-        },
-        disabled=display_df.columns,
+    # عرض الجدول الاحترافي الجميل مع خانة اختيار تفاعلية (✓)
+    edited_df = st.data_editor(
+        filtered_df,
+        column_config={"Select": st.column_config.CheckboxColumn("إرسال؟", default=False)},
+        disabled=[c for c in filtered_df.columns if c != "Select"],
         hide_index=True,
         use_container_width=True,
-        key="styled_students_grid"
+        key="local_automation_grid"
     )
+    
+    # فلترة الطالبات المختارين بـ علامة صح فقط
+    selected_students = edited_df[edited_df["Select"] == True]
+    st.write(f"🎯 عدد الطالبات المحددات للإرسال التلقائي الفعلي: **{len(selected_students)}**")
+    
+    # 🚀 زر بدء الإرسال التلقائي المباشر دفعة واحدة
+    if st.button("🚀 اضغط هنا لبدء الإرسال التلقائي للمجموعات المحددة"):
+        if len(selected_students) == 0:
+            st.error("الرجاء وضع علامة صح (✓) أمام طالبة واحدة على الأقل من الجدول بالأعلى!")
+        elif not message_text.strip():
+            st.warning("الرجاء كتابة نص الرسالة أولاً!")
+        else:
+            st.warning("⚠️ انتظر قليلاً.. سيبدأ النظام بالإرسال التلقائي الآن متتالياً. يرجى عدم تحريك الماوس أو الكيبورد.")
+            
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            total = len(selected_students)
+            
+            for index, (idx, row) in enumerate(selected_students.iterrows()):
+                name = str(row[name_col])
+                phone = str(row[phone_col]).strip()
+                
+                # تنظيف الرقم وإصلاحه دولياً تلقائياً للمملكة (+966)
+                phone = "".join(filter(str.isdigit, phone))
+                if phone.startswith("05") and len(phone) == 10: phone = "+966" + phone[1:]
+                elif phone.startswith("5") and len(phone) == 9: phone = "+966" + phone
+                elif phone.startswith("966") and len(phone) == 12: phone = "+" + phone
+                
+                custom_message = message_text.replace("[اسم الطالبة]", name)
+                custom_message = custom_message.replace("[اليوم]", current_day_ar)
+                custom_message = custom_message.replace("[التاريخ الهجري]", hijri_date_str)
+                
+                status_text.text(f"⏳ جاري إرسال الرسالة التلقائية إلى: {name} ({index + 1}/{total})...")
+                
+                try:
+                    # الإرسال التلقائي والتحكم بالماوس محلياً
+                    kit.sendwhatmsg_instantly(phone_no=phone, message=custom_message, wait_time=25, tab_close=True, close_time=3)
+                    time.sleep(5)
+                    st.success(f"✅ تم الإرسال بنجاح إلى: {name}")
+                except Exception as e:
+                    st.error(f"❌ فشل الإرسال إلى {name}: {e}")
+                    
+                progress_bar.progress((index + 1) / total)
+                
+            status_text.text("✅ اكتملت العملية وتم إرسال كافة الرسائل للمحددات تلقائياً!")
 
-# --- التوقيع والحقوق المنسقة أسفل الصفحة ---
-st.markdown("""
-    <hr style='border-top: 1px solid #bbb;'>
-    <div style='display: flex; justify-content: space-between; color: #888; font-size: 14px;'>
-        <div>لوحة تحكم سحابية v2.0</div>
-        <div style='font-weight: bold; color: #1E3A8A;'>✨ تصميم واعداد : غادة المجيبل</div>
-    </div>
-""", unsafe_allow_html=True)
+# --- الحقوق المنسقة أسفل الصفحة يُرجى استخدام الرمز البرمجي بحذر
