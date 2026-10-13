@@ -1,3 +1,4 @@
 pandas
 hijri-converter
 pywhatkit
+openpyxl
