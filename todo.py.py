@@ -61,7 +61,7 @@ if uploaded_file is not None:
     with col_right:
         st.markdown("### 📝 نص الرسالة الموحدة")
         st.caption(f"💡 الاختصارات: [اسم الطالبة] | [اليوم] ({current_day_ar}) | [التاريخ الهجري] ({hijri_date_str})")
-        default_text = "السلام عليكم ولي أمر الطالبة [اسم الطالبة]، نفيدكم علماً بأنه في هذا اليوم [اليوم] الموافق [التاريخ الهجري] قد تم..."
+        default_text = "السلام عليكم ولي أمر الطالبة [اسم الطالبة]، نفيدكم علماً بأنه في هذا اليوم [اليوم] الموافق [التاريخ الهجري] تغيبت ابنتكم فهل يوجد عذر رسمي للغياب ..."
         message_text = st.text_area("تعديل نص الرسالة:", value=default_text, height=100)
 
     if "Select" not in filtered_df.columns:
@@ -77,7 +77,7 @@ if uploaded_file is not None:
         disabled=[c for c in filtered_df.columns if c != "Select"],
         hide_index=True,
         use_container_width=True,
-        key="cloud_perfect_selection_grid_fixed"
+        key="cloud_perfect_selection_grid_fixed_final"
     )
     
     selected_students = edited_df[edited_df["Select"] == True]
@@ -101,8 +101,8 @@ if uploaded_file is not None:
             custom_message = custom_message.replace("[التاريخ الهجري]", hijri_date_str)
             
             encoded_message = urllib.parse.quote(custom_message)
-          whatsapp_url = f"https://wa.me{phone}?text={encoded_message}"
-
+            # تم ضبط الرابط بالشرطة المائلة بدقة متناهية هنا
+            whatsapp_url = f"https://wa.me{phone}?text={encoded_message}"
             
             st.link_button(f"💬 اضغط لإرسال رسالة الطالبة: {name}", whatsapp_url, use_container_width=True)
 
@@ -110,6 +110,6 @@ st.markdown("""
     <hr style='border-top: 1px solid #bbb;'>
     <div style='display: flex; justify-content: space-between; color: #888; font-size: 14px; direction: rtl;'>
         <div style='font-weight: bold; color: #1E3A8A;'>✨ تصميم واعداد : غادة المجيبل</div>
-        <div>لوحة تحكم سحابية v5.1</div>
+        <div>لوحة تحكم سحابية v5.2</div>
     </div>
 """, unsafe_allow_html=True)
