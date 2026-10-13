@@ -113,9 +113,10 @@ if uploaded_file is not None:
             
             encoded_message = urllib.parse.quote(custom_message)
             # صياغة الرابط العالمي الدقيق والآمن جداً
-            whatsapp_url = f"https://wa.me{phone_final}?text={encoded_message}"
+                     whatsapp_url = f"https://wa.me{phone_final}?text={encoded_message}"
+
             
-            st.link_button(f"💬 اضغط لإرسال رسالة الطالبة: {name}", whatsapp_url, use_container_width=True)
+            st.link_button(f"💬 اضغط لإرسال رسالة الطالبة: {name}", whatsapp_url, use_container_ width =True)
 
 st.markdown("""
     <hr style='border-top: 1px solid #bbb;'>
