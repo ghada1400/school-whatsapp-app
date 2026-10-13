@@ -77,42 +77,50 @@ if uploaded_file is not None:
         disabled=[c for c in filtered_df.columns if c != "Select"],
         hide_index=True,
         use_container_width=True,
-        key="cloud_perfect_selection_grid_fixed_final_v5_4"
+        key="cloud_perfect_selection_grid_fixed_final_v5_5"
     )
     
     selected_students = edited_df[edited_df["Select"] == True]
     
     st.markdown("---")
-    st.markdown(f"### 🚀 قائمة روابط الإرسال المباشرة المجهزة ({len(selected_students)} طالبة مختارة):")
+    st.markdown(f"### 🚀 قائمة أزرار الإرسال الفوري المجهزة ({len(selected_students)} طالبة مختارة):")
     
     if len(selected_students) == 0:
-        st.info("💡 الرجاء وضع علامة صح (✓) أمام أسماء الطالبات في الجدول بالأعلى ليتم إنشاء روابط إرسال مخصصة لهن هنا فوراً.")
+        st.info("💡 الرجاء وضع علامة صح (✓) أمام أسماء الطالبات في الجدول بالأعلى ليتم إنشاء أزرار إرسال مخصصة لهن هنا فوراً.")
     else:
         for index, row in selected_students.iterrows():
             name = str(row[name_col])
             phone_raw = str(row[phone_col]).strip()
             
+            # تنظيف ومعالجة رقم الهاتف بدقة لروابط الويب المعتمدة لملفكِ
             phone_digits = "".join(filter(str.isdigit, phone_raw))
-            if phone_digits.startswith("00966"): phone_final = phone_digits[2:]
-            elif phone_digits.startswith("966"): phone_final = phone_digits
-            elif phone_digits.startswith("05") and len(phone_digits) == 10: phone_final = "966" + phone_digits[1:]
-            elif phone_digits.startswith("5") and len(phone_digits) == 9: phone_final = "966" + phone_digits
-            else: phone_final = phone_digits
+            
+            if phone_digits.startswith("00966"):
+                phone_final = phone_digits[2:]
+            elif phone_digits.startswith("966"):
+                phone_final = phone_digits
+            elif phone_digits.startswith("05") and len(phone_digits) == 10:
+                phone_final = "966" + phone_digits[1:]
+            elif phone_digits.startswith("5") and len(phone_digits) == 9:
+                phone_final = "966" + phone_digits
+            else:
+                phone_final = "966" + phone_digits # إجبار وضع رمز السعودية للأرقام التي تبدأ بـ 5 مباشرة
                 
             custom_message = message_text.replace("[اسم الطالبة]", name)
             custom_message = custom_message.replace("[اليوم]", current_day_ar)
             custom_message = custom_message.replace("[التاريخ الهجري]", hijri_date_str)
             
             encoded_message = urllib.parse.quote(custom_message)
+            
+            # بناء الرابط المضمون والمحمي بالشرطة المائلة المباشرة
             whatsapp_url = f"https://wa.me{phone_final}?text={encoded_message}"
             
-            # الحل السحري: عرض الرابط كنص تشعبي احترافي ومباشر يتخطى حظر المتصفحات تماماً
-            st.markdown(f"👤 الطالبة: **{name}** ➔ [اضغطي هنا لفتح محادثة الواتساب وإرسال الرسالة فورا]({whatsapp_url})")
+            st.link_button(f"💬 اضغط لإرسال رسالة الطالبة: {name}", whatsapp_url, use_container_width=True)
 
 st.markdown("""
     <hr style='border-top: 1px solid #bbb;'>
     <div style='display: flex; justify-content: space-between; color: #888; font-size: 14px; direction: rtl;'>
         <div style='font-weight: bold; color: #1E3A8A;'>✨ تصميم واعداد : غادة المجيبل</div>
-        <div>لوحة تحكم سحابية v5.4</div>
+        <div>لوحة تحكم سحابية v5.5</div>
     </div>
 """, unsafe_allow_html=True)
