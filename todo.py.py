@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
-import pywhatkit as kit
-import time
+import urllib.parse
 from datetime import datetime
 from hijri_converter import Gregorian
 
@@ -22,10 +21,10 @@ HIJRI_MONTHS = {
     9: "رمضان", 10: "شوال", 11: "ذو القعدة", 12: "ذو الحجة"
 }
 
-st.set_page_config(page_title="نظام مراسلة المدارس - غادة المجيبل", layout="wide")
+st.set_page_config(page_title="نظام مراسلة المدارس المتطور", layout="wide")
 
 st.title("🏫 نظام إدارة ومراسلة الطالبات الذكي بالتقويم الهجري")
-st.write("ارفع ملف الإكسل، صفّ الطالبات حسب الصف، حدد الأسماء، وأرسل تلقائياً مع الاسم واليوم والتاريخ الهجري.")
+st.write("ارفع ملف الإكسل، صفّ الطالبات حسب الصف، حدد الأسماء، وأرسل مباشرة عبر الواتساب.")
 
 # 📂 1. رفع ملف الإكسل
 uploaded_file = st.file_uploader("اختر ملف إكسل الطالبات (.xlsx)", type=["xlsx"])
@@ -50,8 +49,8 @@ if uploaded_file is not None:
         elif "صف" in col_lower or "فصل" in col_lower or "class" in col_lower or "المرحلة" in col_lower:
             class_col = col
 
-    if not name_col: name_col = df.columns
-    if not phone_col: phone_col = df.columns if len(df.columns) > 1 else df.columns
+    if not name_col: name_col = df.columns[0]
+    if not phone_col: phone_col = df.columns[1] if len(df.columns) > 1 else df.columns[0]
 
     # 🔍 2. ميزة تصفية وفلترة الصفوف
     filtered_df = df.copy()
@@ -65,28 +64,15 @@ if uploaded_file is not None:
         if selected_class != "عرض جميع الصفوف":
             filtered_df = df[df[class_col] == selected_class].copy()
 
-    # إضافة عمود الاختيار للجدول المفلتر
-    if "Select" not in filtered_df.columns:
-        filtered_df.insert(0, "Select", False)
-
     st.write("---")
     st.write(f"📊 عدد الطالبات المتاحات في هذا العرض: **{len(filtered_df)}**")
-    st.write("### 👥 ضع علامة (✓) أمام الطالبات المراد مراسلتهن:")
-    
-    # عرض الجدول التفاعلي
-    edited_df = st.data_editor(
-        filtered_df,
-        column_config={"Select": st.column_config.CheckboxColumn("اختيار", default=False)},
-        disabled=[c for c in filtered_df.columns if c != "Select"],
-        key="students_final_hijri_prod_editor"
-    )
-    
-    selected_students = edited_df[edited_df["Select"] == True]
+    st.write("### 👥 جدول بيانات الطالبات:")
+    st.dataframe(filtered_df)
     
     st.write("---")
     st.write("### 📝 اكتب نص الرسالة الموحدة:")
     
-    # 🌙 حساب التاريخ الهجري الحالي بالمكتبة الجديدة المستقرة
+    # 🌙 حساب التاريخ الهجري الحالي بالمكتبة المستقرة
     now = datetime.now()
     current_day_en = now.strftime("%A")
     current_day_ar = DAYS_ARABIC.get(current_day_en, current_day_en)
@@ -98,53 +84,34 @@ if uploaded_file is not None:
     
     st.info(f"💡 اختصارات ذكية ستتبدل تلقائياً: اكتب `[اسم الطالبة]` أو `[اليوم]` (سيظهر: {current_day_ar}) أو `[التاريخ الهجري]` (سيظهر: {hijri_date_str})")
     
-    # مربع النص الافتراضي بالصيغة الهجرية
     default_text = "السلام عليكم ولي أمر الطالبة [اسم الطالبة]، نفيدكم علماً بأنه في هذا اليوم [اليوم] الموافق [التاريخ الهجري] قد تم..."
     message_text = st.text_area("نص الرسالة:", value=default_text)
     
-    st.write(f"🎯 عدد الطالبات المحددات للإرسال الفعلي: **{len(selected_students)}**")
-    
-    # 🚀 3. زر بدء الإرسال التلقائي
-    if st.button("اضغط هنا لبدء الإرسال التلقائي المباشر لجميع المختارين"):
-        if len(selected_students) == 0:
-            st.error("الرجاء اختيار طالبة واحدة على الأقل من الجدول بالأعلى!")
-        elif not message_text.strip():
-            st.warning("الرجاء كتابة نص الرسالة أولاً!")
-        else:
-            st.warning("⚠️ انتظر قليلاً.. سيبدأ الإرسال التلقائي الآن. يرجى إبقاء المتصفح مفتوحاً وعدم تحريك الماوس.")
-            
-            progress_bar = st.progress(0)
-            status_text = st.empty()
-            total = len(selected_students)
-            
-            for index, (idx, row) in enumerate(selected_students.iterrows()):
-                name = str(row[name_col])
-                phone = str(row[phone_col]).strip()
-                
-                # إصلاح وتعديل صيغة رقم الهاتف الدولية
-                phone = "".join(filter(str.isdigit, phone))
-                if phone.startswith("05") and len(phone) == 10:
-                    phone = "+966" + phone[1:]
-                elif phone.startswith("5") and len(phone) == 9:
-                    phone = "+966" + phone
-                elif phone.startswith("966") and len(phone) == 12:
-                    phone = "+" + phone
-                
-                # 🔄 التبديل الديناميكي لكل رسالة
-                custom_message = message_text.replace("[اسم الطالبة]", name)
-                custom_message = custom_message.replace("[اليوم]", current_day_ar)
-                custom_message = custom_message.replace("[التاريخ الهجري]", hijri_date_str)
-                
-                status_text.text(f"⏳ جاري تجهيز وإرسال الرسالة إلى: {name} ({index + 1}/{total})...")
-                
-                try:
-                    kit.sendwhatmsg_instantly(phone_no=phone, message=custom_message, wait_time=25, tab_close=True, close_time=3)
-                    time.sleep(5) # وقت أمان بين الرسائل
-                    st.success(f"✅ تمت جدولة وإرسال الرسالة بنجاح إلى: {name}")
-                except Exception as e:
-                    st.error(f"❌ فشل الإرسال إلى {name}: {e}")
-                    
-                progress_bar.progress((index + 1) / total)
-                
-            status_text.text("✅ اكتملت العملية وتم تمرير كافة الرسائل المحددة!")
+    st.write("### 🚀 روابط المراسلة المباشرة للطالبات:")
+    st.write("اضغط على زر الإرسال بجانب اسم كل طالبة لفتح محادثتها بالرسالة المجهزة فوراً:")
 
+    for index, row in filtered_df.iterrows():
+        name = str(row[name_col])
+        phone = str(row[phone_col]).strip()
+        
+        # معالجة وإصلاح رقم الهاتف تلقائياً لإضافة رمز الدولة بالسعودية (+966)
+        phone = "".join(filter(str.isdigit, phone))
+        if phone.startswith("05") and len(phone) == 10:
+            phone = "966" + phone[1:]
+        elif phone.startswith("5") and len(phone) == 9:
+            phone = "966" + phone
+            
+        custom_message = message_text.replace("[اسم الطالبة]", name)
+        custom_message = custom_message.replace("[اليوم]", current_day_ar)
+        custom_message = custom_message.replace("[التاريخ الهجري]", hijri_date_str)
+        
+        # تشفير النص ليكون صالحاً كـ رابط ويب متوافق مع الجوالات والكمبيوتر
+        encoded_message = urllib.parse.quote(custom_message)
+        whatsapp_url = f"https://whatsapp.com{phone}&text={encoded_message}"
+        
+        # عرض زر مخصص واحترافي لكل طالبة للإرسال المباشر بضغطة واحدة
+        st.link_button(f"📲 إرسال إلى الطالبة: {name}", whatsapp_url)
+
+# --- التوقيع والحقوق أسفل الصفحة ---
+st.write("---")
+st.markdown("<p style='text-align: right; color: gray; font-weight: bold;'>✨ تصميم واعداد : غادة المجيبل</p>", unsafe_allow_html=True)
