@@ -94,6 +94,8 @@ if uploaded_file is not None:
             
             # الصياغة العالمية المعتمدة والآمنة 100% بالشرطة المائلة المباشرة
             whatsapp_url = f"https://wa.me{phone_final}?text={encoded_message}"
+            =HYPERLINK("https://wa.me" & TRIM(SUBSTITUTE(B2, " ", "")) & "?text=" & ENCODEURL("السلام عليكم ولي أمر الطالبة " & A2 & "، نفيدكم علماً بأنه في هذا اليوم قد تم..."), "💬 إرسال الآن")
+
             whatsapp_links.append(whatsapp_url)
         
         display_df = filtered_df.copy()
