@@ -47,39 +47,37 @@ if uploaded_file is not None:
         hijri_date = Gregorian(now.year, now.month, now.day).to_hijri()
         hijri_date_str = f"{hijri_date.day} {HIJRI_MONTHS.get(hijri_date.month, '')} {hijri_date.year} هـ"
 
-        # تقسيم الشاشة العلوية هندسياً (الفلتر + نص الرسالة)
-        col_left, col_right = st.columns(2, gap="large")
+        # تصفية الفصول الدراسيّة
+        st.markdown("### 📌 تصفية الفصول الدراسيّة")
+        df[class_col] = df[class_col].astype(str).str.strip()
+        unique_classes = df[class_col].dropna().unique()
+        selected_class = st.selectbox("اختر الصف الدراسي:", ["عرض جميع الصفوف"] + list(unique_classes))
         
-        with col_left:
-            st.markdown("### 📌 تصفية الفصول الدراسيّة")
-            df[class_col] = df[class_col].astype(str).str.strip()
-            unique_classes = df[class_col].dropna().unique()
-            selected_class = st.selectbox("اختر الصف الدراسي:", ["عرض جميع الصفوف"] + list(unique_classes))
-            
-            filtered_df = df.copy()
-            if selected_class != "عرض جميع الصفوف":
-                filtered_df = df[df[class_col] == selected_class].copy()
+        filtered_df = df.copy()
+        if selected_class != "عرض جميع الصفوف":
+            filtered_df = df[df[class_col] == selected_class].copy()
 
-        with col_right:
-            st.markdown("### 📝 نص الرسالة الموحدة")
-            st.caption(f"💡 الاختصارات: [اسم الطالبة] | [اليوم] ({current_day_ar}) | [التاريخ الهجري] ({hijri_date_str})")
-            default_text = "السلام عليكم ولي أمر الطالبة [اسم الطالبة]، نفيدكم علماً بأنه في هذا اليوم [اليوم] الموافق [التاريخ الهجري] قد تم..."
-            message_text = st.text_area("تعديل نص الرسالة:", value=default_text, height=100)
+        # نص الرسالة الموحدة
+        st.markdown("---")
+        st.markdown("### 📝 نص الرسالة الموحدة")
+        st.caption(f"💡 الاختصارات: [اسم الطالبة] | [اليوم] ({current_day_ar}) | [التاريخ الهجري] ({hijri_date_str})")
+        default_text = "السلام عليكم ولي أمر الطالبة [اسم الطالبة]، نفيدكم علماً بأنه في هذا اليوم [اليوم] الموافق [التاريخ الهجري] قد تم..."
+        message_text = st.text_area("تعديل نص الرسالة:", value=default_text, height=100)
 
         st.markdown("---")
         st.markdown("### 👥 جدول الطالبات التنفيذي المباشر")
         st.write(f"📊 عدد الطالبات في العرض الحالي: **{len(filtered_df)} طالبة**")
 
-        # 🔄 معالجة وتنظيف الأرقام وبناء الرابط بشكل حتمي بالشرطة المائلة
+        # 🔄 معالجة الأرقام وبناء الرابط بطريقة حتمية تمنع اختفاء الشرطة المائلة
         whatsapp_links = []
         for index, row in filtered_df.iterrows():
             name = str(row[name_col])
             phone_raw = str(row[phone_col]).strip()
             
-            # استخراج الأرقام وحذف أي رموز مخفية
+            # استخراج الأرقام وتطهيرها من أي رموز مخفية
             phone_digits = re.sub(r'\D', '', phone_raw)
             
-            # توحيد الرقم دولياً بالكامل لملفك الحقيقي
+            # توحيد الرقم دولياً بالكامل
             if phone_digits.startswith("00966"):
                 phone_final = phone_digits[5:]
             elif phone_digits.startswith("966"):
@@ -92,12 +90,16 @@ if uploaded_file is not None:
             custom_message = message_text.replace("[اسم الطالبة]", name).replace("[اليوم]", current_day_ar).replace("[التاريخ الهجري]", hijri_date_str)
             encoded_message = urllib.parse.quote(custom_message)
             
-            # الصياغة العالمية المعتمدة والآمنة 100% بالشرطة المائلة المباشرة
-            whatsapp_url = f"https://wa.me{phone_final}?text={encoded_message}"
+            # 🚀 الحل البرمجي القاطع: استخدام دالة urljoin لإجبار دمج الشرطة المائلة ومنع المتصفح من حظرها أو ابتلاعها
+            base_url = "https://wa.me"
+            phone_and_text = f"966{phone_final}?text={encoded_message}"
+            whatsapp_url = urllib.parse.urljoin(base_url, phone_and_text)
             whatsapp_links.append(whatsapp_url)
-            display_df = filtered_df.copy()
+        
+        display_df = filtered_df.copy()
         display_df["رابط المراسلة"] = whatsapp_links
-        # عرض الجدول الاحترافي التفاعلي وعمود الروابط الموثق سحابياً
+
+        # عرض الجدول الاحترافي النهائي
         st.data_editor(
             display_df,
             column_config={
@@ -110,7 +112,7 @@ if uploaded_file is not None:
             disabled=display_df.columns,
             hide_index=True,
             use_container_width=True,
-            key="cloud_embedded_links_grid_v8"
+            key="cloud_embedded_fixed_final_grid_v8_5"
         )
     else:
         st.error(f"❌ خطأ: تأكدي أن ملف الإكسل يحتوي بدقة على الأعمدة التالية بنفس المسمى: '{name_col}'، '{phone_col}'، '{class_col}'")
@@ -120,6 +122,6 @@ st.markdown("""
     <hr style='border-top: 1px solid #bbb;'>
     <div style='display: flex; justify-content: space-between; color: #888; font-size: 14px; direction: rtl;'>
         <div style='font-weight: bold; color: #1E3A8A;'>✨ تصميم واعداد : غادة المجيبل</div>
-        <div>لوحة تحكم سحابية v8.0 (الموقع الرسمي للويب)</div>
+        <div>لوحة تحكم سحابية v8.5 (نسخة الربط الحتمي)</div>
     </div>
 """, unsafe_allow_html=True)
