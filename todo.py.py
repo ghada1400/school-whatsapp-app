@@ -18,13 +18,13 @@ HIJRI_MONTHS = {
     9: "رمضان", 10: "شوال", 11: "ذو القعدة", 12: "ذو الحجة"
 }
 
-st.set_page_config(page_title="نظام مراسلة المدارس السحابي - أ. غادة Mجيبل", layout="wide")
+st.set_page_config(page_title="نظام مراسلة المدارس السحابي - أ. غادة المجيبل", layout="wide")
 
 # تصميم الهيدر العلوي المنسق والمحترف
 st.markdown("""
     <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 25px; border-right: 5px solid #1E3A8A; text-align: right;'>
         <h2 style='margin: 0; color: #1E3A8A;'>🏫 نظام إدارة ومراسلة الطالبات الإلكتروني السحابي المطور</h2>
-        <p style='margin: 5px 0 0 0; color: #555;'>موقع ويب فوري وجاهز للاستخدام دفعة واحدة بمؤقت 10 ثوانٍ آمن وزر إيقاف طوارئ مخصص</p>
+        <p style='margin: 5px 0 0 0; color: #555;'>موقع ويب فوري وجاهز للاستخدام دفعة واحدة بمؤقت 10 ثوانٍ ذكي ينتقل تلقائياً بين الأسماء المحددة</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -74,42 +74,51 @@ if uploaded_file is not None:
             disabled=[c for c in filtered_df.columns if c != "Select"],
             hide_index=True,
             use_container_width=True,
-            key="cloud_perfect_selection_grid_v11_0"
+            key="cloud_perfect_selection_grid_v11_5"
         )
         
-        selected_students = edited_df[edited_df["Select"] == True]
+        selected_students = edited_df[edited_df["Select"] == True].reset_index(drop=True)
         
         st.markdown(f"""
             <div style='background-color: #e0f2fe; padding: 15px; border-radius: 8px; margin-top: 15px; border-right: 5px solid #0284c7; text-align: right;'>
                 <h4 style='margin: 0; color: #0369a1;'>📊 ملخص أوامر الإرسال المجهزة والمجمعة:</h4>
-                <p style='margin: 5px 0 0 0; color: #334155; font-size: 16px;'>عدد الرسائل المحددة التي ستُرسل بمؤقت 10 ثوانٍ: <b>{len(selected_students)} رسالة</b></p>
+                <p style='margin: 5px 0 0 0; color: #334155; font-size: 16px;'>عدد الرسائل المحددة التي ستُرسل بمؤقت 10 ثوانٍ آمن: <b>{len(selected_students)} رسالة</b></p>
             </div>
         """, unsafe_allow_html=True)
 
         st.markdown("---")
         
-        # إنشاء أزرار التحكم بالسيرفر على الإنترنت
+        # تهيئة متغيرات الذاكرة السحابية لمنع التعليق والتكرار
+        if "send_index" not in st.session_state:
+            st.session_state["send_index"] = 0
+        if "start_send" not in st.session_state:
+            st.session_state["start_send"] = False
+
+        # إنشاء أزرار التحكم بالسيرفر
         col_btn1, col_btn2 = st.columns(2)
         with col_btn2:
             if st.button("🛑 إيقاف الإرسال وإلغاء الطوارئ فوراً", use_container_width=True):
-                st.error("🛑 تم تفعيل إيقاف الطوارئ السحابي بنجاح، وتم تجميد بقية القائمة!")
+                st.error("🛑 تم تفعيل إيقاف الطوارئ السحابي بنجاح، تم حفظ النقطة الحالية وتجميد بقية القائمة!")
                 st.session_state["start_send"] = False
+                st.session_state["send_index"] = 0
                 st.stop()
                 
         with col_btn1:
             if st.button("🚀 اضغط هنا لتفعيل مؤقت الجدولة التلقائي للمحدّدات", use_container_width=True):
                 st.session_state["start_send"] = True
+                st.session_state["send_index"] = 0
 
         st.markdown("### 📲 نافذة الإرسال والمؤقت الذكي المجهزة:")
         
         if len(selected_students) == 0:
             st.info("💡 الرجاء وضع علامة صح (✓) أمام أسماء الطالبات في الجدول بالأعلى ليقوم النظام بجمعهن.")
         else:
-            if st.session_state.get("start_send", False):
+            if st.session_state["start_send"]:
                 total_count = len(selected_students)
+                current_idx = st.session_state["send_index"]
                 
-                # توليد وإدارة الأوامر مع مؤقت 10 ثوانٍ آمن
-                for index, (idx, row) in enumerate(selected_students.iterrows()):
+                if current_idx < total_count:
+                    row = selected_students.iloc[current_idx]
                     name = str(row[name_col])
                     phone_raw = str(row[phone_col]).strip()
                     
@@ -126,21 +135,30 @@ if uploaded_file is not None:
                     phone_and_text = f"966{phone_final}?text={encoded_message}"
                     whatsapp_url = urllib.parse.urljoin(base_url, phone_and_text)
                     
-                    st.write(f"⏳ **الدور الحالي لـ الطالبات المحدّدات ({index + 1}/{total_count}):**")
+                    st.write(f"⏳ **الدور الحالي لـ الطالبات المحدّدات ({current_idx + 1}/{total_count}):**")
                     st.link_button(f"💬 اضغط الآن لإرسال رسالة الطالبة: {name}", whatsapp_url, use_container_width=True)
                     
-                    # ⏱️ تعديل المؤقت التنازلي التلقائي ليكون 10 ثوانٍ فقط والمصلح برمجياً بالصيغة الحديثة
-                    if index < total_count - 1:
-                        st.warning(f"⏱️ تم تجهيز أمر {name}. جاري قفل الإرسال والانتظار لمدة (10 ثوانٍ) آمنة قبل تفعيل الاسم التالي...")
+                    # العداد التنازلي لـ 10 ثوانٍ
+                    if current_idx < total_count - 1:
+                        st.warning(f"⏱️ تم تجهيز أمر {name}. جاري قفل الإرسال والانتظار لمدة (10 ثوانٍ) آمنة قبل الانتقال تلقائياً للطالبة التالية...")
                         countdown_box = st.empty()
                         for seconds_left in range(10, 0, -1):
-                            countdown_box.metric("⏳ المتبقي على تفعيل الطالبة التالية:", f"{seconds_left} ثانية")
+                            countdown_box.metric("⏳ المتبقي على الانتقال التلقائي للأسفل:", f"{seconds_left} ثانية")
                             time.sleep(1)
                         countdown_box.empty()
-                        # التحديث باستخدام الدالة الرسمية الحديثة لإزالة الخطأ الأحمر نهائياً
+                        
+                        # السحر الجديد: زيادة مؤشر الترتيب وحفظه في السيرفر ليتخطى الاسم الحالي وينتقل للثاني فوراً
+                        st.session_state["send_index"] += 1
                         st.rerun()
-                
-                st.success("✅ اكتملت جدولة كافة الأوامر المحددة بنجاح وأمان تام!")
+                    else:
+                        st.success("✅ اكتملت جدولة كافة الأوامر المحددة بنجاح وأمان تام!")
+                        st.session_state["start_send"] = False
+                        st.session_state["send_index"] = 0
+                else:
+                    st.success("✅ اكتملت جدولة كافة الأوامر المحددة بنجاح وأمان تام!")
+                    st.session_state["start_send"] = False
+                    st.session_state["send_index"] = 0
+
     else:
         st.error(f"❌ خطأ: تأكدي أن ملف الإكسل يحتوي بدقة على الأعمدة التالية بنفس المسمى: '{name_col}'، '{phone_col}'، '{class_col}'")
 
@@ -149,6 +167,6 @@ st.markdown("""
     <hr style='border-top: 1px solid #bbb;'>
     <div style='display: flex; justify-content: space-between; color: #888; font-size: 14px; direction: rtl;'>
         <div style='font-weight: bold; color: #1E3A8A;'>✨ تصميم واعداد : غادة المجيبل</div>
-        <div>لوحة تحكم سحابية v11.0 (مؤقت 10 ثوانٍ ويب + زر إيقاف مصلح)</div>
+        <div>لوحة تحكم سحابية v11.5 (نسخة الانتقال الرقمي التلقائي)</div>
     </div>
 """, unsafe_allow_html=True)
