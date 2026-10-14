@@ -64,56 +64,70 @@ if uploaded_file is not None:
         default_text = "السلام عليكم ولي أمر الطالبة [اسم الطالبة]، نفيدكم علماً بأنه في هذا اليوم [اليوم] الموافق [التاريخ الهجري] قد تم..."
         message_text = st.text_area("تعديل نص الرسالة:", value=default_text, height=100)
 
+        # إضافة عمود الاختيار التفاعلي (✓) للجدول سحابياً
+        if "Select" not in filtered_df.columns:
+            filtered_df.insert(0, "Select", False)
+
         st.markdown("---")
-        st.markdown("### 👥 جدول الطالبات التنفيذي المباشر")
-        st.write(f"📊 عدد الطالبات في العرض الحالي: **{len(filtered_df)} طالبة**")
+        st.markdown("### 👥 حدد الطالبات المُراد مراسلتهن من الجدول:")
+        st.write(f"📊 عدد الطالبات المتاحات في هذا العرض: **{len(filtered_df)} طالبة**")
 
-        # 🔄 معالجة الأرقام وبناء الرابط بطريقة حتمية تمنع اختفاء الشرطة المائلة
-        whatsapp_links = []
-        for index, row in filtered_df.iterrows():
-            name = str(row[name_col])
-            phone_raw = str(row[phone_col]).strip()
-            
-            # استخراج الأرقام وتطهيرها من أي رموز مخفية
-            phone_digits = re.sub(r'\D', '', phone_raw)
-            
-            # توحيد الرقم دولياً بالكامل
-            if phone_digits.startswith("00966"):
-                phone_final = phone_digits[5:]
-            elif phone_digits.startswith("966"):
-                phone_final = phone_digits[3:]
-            elif phone_digits.startswith("05"):
-                phone_final = phone_digits[1:]
-            else:
-                phone_final = phone_digits
-                
-            custom_message = message_text.replace("[اسم الطالبة]", name).replace("[اليوم]", current_day_ar).replace("[التاريخ الهجري]", hijri_date_str)
-            encoded_message = urllib.parse.quote(custom_message)
-            
-            # 🚀 الحل البرمجي القاطع: استخدام دالة urljoin لإجبار دمج الشرطة المائلة ومنع المتصفح من حظرها أو ابتلاعها
-            base_url = "https://wa.me"
-            phone_and_text = f"966{phone_final}?text={encoded_message}"
-            whatsapp_url = urllib.parse.urljoin(base_url, phone_and_text)
-            whatsapp_links.append(whatsapp_url)
-        
-        display_df = filtered_df.copy()
-        display_df["رابط المراسلة"] = whatsapp_links
-
-        # عرض الجدول الاحترافي النهائي
-        st.data_editor(
-            display_df,
-            column_config={
-                "رابط المراسلة": st.column_config.LinkColumn(
-                    "💬 إرسال الواتساب",
-                    help="اضغط لفتح محادثة الطالبة فوراً بالرسالة المجهزة",
-                    display_text="💬 إرسال الآن"
-                )
-            },
-            disabled=display_df.columns,
+        # عرض الجدول التفاعلي للسماح بالاختيار (✓)
+        edited_df = st.data_editor(
+            filtered_df,
+            column_config={"Select": st.column_config.CheckboxColumn("اختيار (✓)", default=False)},
+            disabled=[c for c in filtered_df.columns if c != "Select"],
             hide_index=True,
             use_container_width=True,
-            key="cloud_embedded_fixed_final_grid_v8_5"
+            key="cloud_perfect_selection_grid_v9_0"
         )
+        
+        # حصر وحفظ أسطر الطالبات اللواتي قمتِ بوضع علامة صح أمامهن فقط
+        selected_students = edited_df[edited_df["Select"] == True]
+        
+        # 📊 صندوق الإحصاء والتجميع الذكي بناءً على طلبكِ المتميز
+        st.markdown(f"""
+            <div style='background-color: #e0f2fe; padding: 15px; border-radius: 8px; margin-top: 15px; border-right: 5px solid #0284c7; text-align: right;'>
+                <h4 style='margin: 0; color: #0369a1;'>📊 ملخص أوامر الإرسال المجهزة والمجمعة:</h4>
+                <p style='margin: 5px 0 0 0; color: #334155; font-size: 16px;'>عدد الرسائل المحددة حالياً والتي ستُرسل متتالية: <b>{len(selected_students)} رسالة</b></p>
+            </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("---")
+        st.markdown(f"### 🚀 قائمة أزرار الإرسال الفوري للمحدّدات فقط ({len(selected_students)} طالبة مختارة):")
+        
+        if len(selected_students) == 0:
+            st.info("💡 الرجاء وضع علامة صح (✓) أمام أسماء الطالبات في الجدول بالأعلى ليقوم النظام بجمعهن وإنشاء أزرار إرسال مخصصة لهن هنا فوراً.")
+        else:
+            # توليد الأزرار فقط وحصرياً للطالبات اللواتي تم اختيارهن
+            for index, row in selected_students.iterrows():
+                name = str(row[name_col])
+                phone_raw = str(row[phone_col]).strip()
+                
+                # استخراج الأرقام وتطهيرها من أي رموز مخفية
+                phone_digits = re.sub(r'\D', '', phone_raw)
+                
+                # توحيد الرقم دولياً بالكامل لملفك الحقيقي
+                if phone_digits.startswith("00966"):
+                    phone_final = phone_digits[5:]
+                elif phone_digits.startswith("966"):
+                    phone_final = phone_digits[3:]
+                elif phone_digits.startswith("05"):
+                    phone_final = phone_digits[1:]
+                else:
+                    phone_final = phone_digits
+                    
+                custom_message = message_text.replace("[اسم الطالبة]", name).replace("[اليوم]", current_day_ar).replace("[التاريخ الهجري]", hijri_date_str)
+                encoded_message = urllib.parse.quote(custom_message)
+                
+                # آلية الربط الحتمي والمحمي بالشرطة المائلة التي أثبتت نجاحها الباهر
+                base_url = "https://wa.me"
+                phone_and_text = f"966{phone_final}?text={encoded_message}"
+                whatsapp_url = urllib.parse.urljoin(base_url, phone_and_text)
+                
+                # تصميم زر مخصص عريض ومريح للإرسال الفوري المتتالي
+                st.link_button(f"💬 اضغط لإرسال رسالة الطالبة: {name}", whatsapp_url, use_container_width=True)
+
     else:
         st.error(f"❌ خطأ: تأكدي أن ملف الإكسل يحتوي بدقة على الأعمدة التالية بنفس المسمى: '{name_col}'، '{phone_col}'، '{class_col}'")
 
@@ -122,6 +136,6 @@ st.markdown("""
     <hr style='border-top: 1px solid #bbb;'>
     <div style='display: flex; justify-content: space-between; color: #888; font-size: 14px; direction: rtl;'>
         <div style='font-weight: bold; color: #1E3A8A;'>✨ تصميم واعداد : غادة المجيبل</div>
-        <div>لوحة تحكم سحابية v8.5 (نسخة الربط الحتمي)</div>
+        <div>لوحة تحكم سحابية v9.0 (النسخة النهائية المجمعة)</div>
     </div>
 """, unsafe_allow_html=True)
