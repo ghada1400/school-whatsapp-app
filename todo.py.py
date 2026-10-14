@@ -18,13 +18,13 @@ HIJRI_MONTHS = {
     9: "رمضان", 10: "شوال", 11: "ذو القعدة", 12: "ذو الحجة"
 }
 
-st.set_page_config(page_title="نظام مراسلة المدارس السحابي - أ. غادة المجيبل", layout="wide")
+st.set_page_config(page_title="نظام مراسلة المدارس السحابي - أ. غادة Mجيبل", layout="wide")
 
 # تصميم الهيدر العلوي المنسق والمحترف
 st.markdown("""
     <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 25px; border-right: 5px solid #1E3A8A; text-align: right;'>
         <h2 style='margin: 0; color: #1E3A8A;'>🏫 نظام إدارة ومراسلة الطالبات الإلكتروني السحابي المطور</h2>
-        <p style='margin: 5px 0 0 0; color: #555;'>موقع ويب فوري وجاهز للاستخدام دفعة واحدة بمؤقت 40 ثانية آمن وزر إيقاف طوارئ مخصص</p>
+        <p style='margin: 5px 0 0 0; color: #555;'>موقع ويب فوري وجاهز للاستخدام دفعة واحدة بمؤقت 10 ثوانٍ آمن وزر إيقاف طوارئ مخصص</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -74,15 +74,15 @@ if uploaded_file is not None:
             disabled=[c for c in filtered_df.columns if c != "Select"],
             hide_index=True,
             use_container_width=True,
-            key="cloud_perfect_selection_grid_v10_5"
+            key="cloud_perfect_selection_grid_v11_0"
         )
         
         selected_students = edited_df[edited_df["Select"] == True]
         
         st.markdown(f"""
             <div style='background-color: #e0f2fe; padding: 15px; border-radius: 8px; margin-top: 15px; border-right: 5px solid #0284c7; text-align: right;'>
-                <h4 style='margin: 0; color: #0369a1;'>📊 :ملخص أوامر الإرسال المجهزة والمجمعة</h4>
-                <p style='margin: 5px 0 0 0; color: #334155; font-size: 16px;'>عدد الرسائل المحددة التي ستُرسل بمؤقت 40 ثانية: <b>{len(selected_students)} رسالة</b></p>
+                <h4 style='margin: 0; color: #0369a1;'>📊 ملخص أوامر الإرسال المجهزة والمجمعة:</h4>
+                <p style='margin: 5px 0 0 0; color: #334155; font-size: 16px;'>عدد الرسائل المحددة التي ستُرسل بمؤقت 10 ثوانٍ: <b>{len(selected_students)} رسالة</b></p>
             </div>
         """, unsafe_allow_html=True)
 
@@ -108,7 +108,7 @@ if uploaded_file is not None:
             if st.session_state.get("start_send", False):
                 total_count = len(selected_students)
                 
-                # توليد وإدارة الأوامر مع مؤقت 40 ثانية آمن
+                # توليد وإدارة الأوامر مع مؤقت 10 ثوانٍ آمن
                 for index, (idx, row) in enumerate(selected_students.iterrows()):
                     name = str(row[name_col])
                     phone_raw = str(row[phone_col]).strip()
@@ -129,15 +129,16 @@ if uploaded_file is not None:
                     st.write(f"⏳ **الدور الحالي لـ الطالبات المحدّدات ({index + 1}/{total_count}):**")
                     st.link_button(f"💬 اضغط الآن لإرسال رسالة الطالبة: {name}", whatsapp_url, use_container_width=True)
                     
-                    # ⏱️ تعديل المؤقت التنازلي التلقائي ليكون 40 ثانية فقط بناء على طلبك
+                    # ⏱️ تعديل المؤقت التنازلي التلقائي ليكون 10 ثوانٍ فقط والمصلح برمجياً بالصيغة الحديثة
                     if index < total_count - 1:
-                        st.warning(f"⏱️ تم تجهيز أمر {name}. جاري قفل الإرسال والانتظار لمدة (40 ثانية) آمنة قبل تفعيل الاسم التالي...")
+                        st.warning(f"⏱️ تم تجهيز أمر {name}. جاري قفل الإرسال والانتظار لمدة (10 ثوانٍ) آمنة قبل تفعيل الاسم التالي...")
                         countdown_box = st.empty()
-                        for seconds_left in range(40, 0, -1):
+                        for seconds_left in range(10, 0, -1):
                             countdown_box.metric("⏳ المتبقي على تفعيل الطالبة التالية:", f"{seconds_left} ثانية")
                             time.sleep(1)
                         countdown_box.empty()
-                        st.experimental_rerun()
+                        # التحديث باستخدام الدالة الرسمية الحديثة لإزالة الخطأ الأحمر نهائياً
+                        st.rerun()
                 
                 st.success("✅ اكتملت جدولة كافة الأوامر المحددة بنجاح وأمان تام!")
     else:
@@ -148,6 +149,6 @@ st.markdown("""
     <hr style='border-top: 1px solid #bbb;'>
     <div style='display: flex; justify-content: space-between; color: #888; font-size: 14px; direction: rtl;'>
         <div style='font-weight: bold; color: #1E3A8A;'>✨ تصميم واعداد : غادة المجيبل</div>
-        <div>لوحة تحكم سحابية v10.5 (مؤقت 40 ثانية ويب + زر إيقاف)</div>
+        <div>لوحة تحكم سحابية v11.0 (مؤقت 10 ثوانٍ ويب + زر إيقاف مصلح)</div>
     </div>
 """, unsafe_allow_html=True)
