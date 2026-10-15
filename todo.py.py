@@ -56,7 +56,7 @@ if uploaded_file is not None:
         st.markdown("---")
         st.markdown("### 📝 نص الرسالة الموحدة")
         st.caption(f"💡 الاختصارات: [اسم الطالبة] | [اليوم] ({current_day_ar}) | [التاريخ الهجري] ({hijri_date_str})")
-        default_text = "السلام عليكم ولي أمر الطالبة [اسم الطالبة]، نفيدكم علماً بأنه في هذا اليوم [اليوم] الموافق [التاريخ الهجري] قد تم..."
+        default_text = "السلام عليكم ولي أمر الطالبة [اسم الطالبة]، نفيدكم علماً بأن ابنتكم تغيبت في هذا اليوم [اليوم] الموافق [التاريخ الهجري] نرجو ارسال العذر الرسمي ان وجد ..."
         message_text = st.text_area("تعديل نص الرسالة:", value=default_text, height=100)
 
         if "Select" not in filtered_df.columns:
