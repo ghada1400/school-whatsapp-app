@@ -23,7 +23,7 @@ st.set_page_config(page_title="نظام مراسلة المدارس السحاب
 st.markdown("""
     <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 25px; border-right: 5px solid #1E3A8A; text-align: right;'>
         <h2 style='margin: 0; color: #1E3A8A;'>🏫 نظام إدارة ومراسلة الطالبات الإلكتروني بالابتدائية الخامسة بالعيون</h2>
-        <p style='margin: 5px 0 0 0; color: #555;'>موقع ويب فوري وجاهز للاستخدام دفعة واحدة بمؤقت أمان 10 ثوانٍ وزر انتقال يدوي مأمون</p>
+        <p style='margin: 5px 0 0 0; color: #555;'>   موقع ويب يتطلب واتساب خاص بالمدرسة و رفع ملف اكسل مكون من عمود (اسم الطالبة) و( رقم الهاتف) ( الصف ) لتتمكني استخدامه مجانا  ) </p>
     </div>
 """, unsafe_allow_html=True)
 
