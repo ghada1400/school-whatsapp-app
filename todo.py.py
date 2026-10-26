@@ -22,7 +22,7 @@ st.set_page_config(page_title="نظام مراسلة المدارس السحاب
 
 st.markdown("""
     <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 25px; border-right: 5px solid #1E3A8A; text-align: right;'>
-        <h2 style='margin: 0; color: #1E3A8A;'>🏫 نظام إدارة ومراسلة الطالبات الإلكتروني السحابي المطور</h2>
+        <h2 style='margin: 0; color: #1E3A8A;'>🏫 نظام إدارة ومراسلة الطالبات الإلكتروني بالابتدائية الخامسة بالعيون</h2>
         <p style='margin: 5px 0 0 0; color: #555;'>موقع ويب فوري وجاهز للاستخدام دفعة واحدة بمؤقت أمان 10 ثوانٍ وزر انتقال يدوي مأمون</p>
     </div>
 """, unsafe_allow_html=True)
@@ -141,9 +141,9 @@ if uploaded_file is not None:
                     
                     # إذا كنا في مرحلة العد التنازلي لحماية الرقم بعد ضغط زر الانتقال
                     if st.session_state["show_countdown"]:
-                        st.warning(f"⏱️ جاري تفعيل الحماية والانتظار لمدة (10 ثوانٍ) قبل فتح الاسم التالي لمنع حظر رقم المدرسة...")
+                        st.warning(f"⏱️ جاري تفعيل الحماية والانتظار لمدة (5 ثوانٍ) قبل فتح الاسم التالي لمنع حظر رقم المدرسة...")
                         countdown_box = st.empty()
-                        for seconds_left in range(10, 0, -1):
+                        for seconds_left in range(5, 0, -1):
                             countdown_box.metric("⏳ المتبقي لتجهيز الطالبة التالية:", f"{seconds_left} ثانية")
                             time.sleep(1)
                         countdown_box.empty()
@@ -177,7 +177,7 @@ if uploaded_file is not None:
 st.markdown("""
     <hr style='border-top: 1px solid #bbb;'>
     <div style='display: flex; justify-content: space-between; color: #888; font-size: 14px; direction: rtl;'>
-        <div style='font-weight: bold; color: #1E3A8A;'>✨ تصميم واعداد : غادة Mجيبل</div>
+        <div style='font-weight: bold; color: #1E3A8A;'>✨ تصميم واعداد : غادة المجيبل</div>
         <div>لوحة تحكم سحابية v12.0 (نسخة التحكم والاتزان المأمون)</div>
     </div>
 """, unsafe_allow_html=True)
